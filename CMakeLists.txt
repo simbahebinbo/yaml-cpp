@@ -17,8 +17,8 @@ endif()
 include("cmake/HunterGate.cmake")
 
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.15.25.tar.gz"
-    SHA1 "74993ddf2cf8a6a4c3e0b9d58027a624bf3060e7"
+    URL "https://github.com/ruslo/hunter/archive/v0.16.30.tar.gz"
+    SHA1 "c5b159b48a3a842697f08fe2a72464adfd78a55d"
     )
 
 include(CheckCXXCompilerFlag)
