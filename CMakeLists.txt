@@ -13,23 +13,22 @@ if(POLICY CMP0015)
 	cmake_policy(SET CMP0015 OLD)
 endif()
 
-
 include("cmake/HunterGate.cmake")
-
 HunterGate(
     URL "https://github.com/ruslo/hunter/archive/v0.16.30.tar.gz"
     SHA1 "c5b159b48a3a842697f08fe2a72464adfd78a55d"
     )
 
-include(CheckCXXCompilerFlag)
+project(YAML_CPP)
 
 ###
 ### Project settings
 ###
-project(YAML_CPP)
-
+include(CheckCXXCompilerFlag)
 hunter_add_package(Boost)
 find_package(Boost CONFIG REQUIRED)
+
+
 
 set(YAML_CPP_VERSION_MAJOR "0")
 set(YAML_CPP_VERSION_MINOR "5")
@@ -123,6 +122,8 @@ endif()
 include_directories(${YAML_CPP_SOURCE_DIR}/src)
 include_directories(${YAML_CPP_SOURCE_DIR}/include)
 
+find_package(Boost REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
 
 
 ###
@@ -132,11 +133,9 @@ set(yaml_c_flags ${CMAKE_C_FLAGS})
 set(yaml_cxx_flags ${CMAKE_CXX_FLAGS})
 
 if(BUILD_SHARED_LIBS)
-    if (WIN32)
-        set(SHARED_DEFINITIONS "-D${PROJECT_NAME}_DLL")
-    else()
-        set(SHARED_FLAGS "-fPIC")
-    endif()
+	set(LABEL_SUFFIX "shared")
+else()
+	set(LABEL_SUFFIX "static")
 endif()
 
 if(APPLE)
@@ -150,9 +149,18 @@ if(IPHONE)
 	set(CMAKE_OSX_ARCHITECTURES "armv6;armv7")
 endif()
 
+if(WIN32)
+	if(BUILD_SHARED_LIBS)
+		add_definitions(-D${PROJECT_NAME}_DLL)	# use or build Windows DLL
+	endif()
+	if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+		set(CMAKE_INSTALL_PREFIX "C:/")
+	endif()
+endif()
+
 # GCC or Clang specialities
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
-   CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR
+   "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
 	### General stuff
 	if(WIN32)
 		set(CMAKE_SHARED_LIBRARY_PREFIX "")	# DLLs do not have a "lib" prefix
@@ -226,6 +234,8 @@ if(MSVC)
 			endforeach()
 		endforeach()
 	endif()
+	#
+	set(LABEL_SUFFIX "${LABEL_SUFFIX} ${LIB_RT_SUFFIX}")
 
 	# b) Change prefix for static libraries
 	set(CMAKE_STATIC_LIBRARY_PREFIX "lib")	# to distinguish static libraries from DLL import libs
@@ -253,109 +263,93 @@ else()
 	set(_library_dir lib)
 endif()
 
-set(INCLUDE_INSTALL_ROOT_DIR ${CMAKE_INSTALL_PREFIX}/include)
+set(INCLUDE_INSTALL_ROOT_DIR include)
 
-set(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/${_library_dir}${LIB_SUFFIX}")
+set(INCLUDE_INSTALL_DIR ${INCLUDE_INSTALL_ROOT_DIR}/yaml-cpp)
+set(LIB_INSTALL_DIR "${_library_dir}${LIB_SUFFIX}")
 
 set(_INSTALL_DESTINATIONS
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+	ARCHIVE DESTINATION "lib${LIB_SUFFIX}"
 )
 
 
 ###
-### Libraries
+### Library
 ###
-set(target_to_export yaml-cpp-static)
-
-add_library(yaml-cpp-static STATIC ${library_sources})
-target_link_libraries(yaml-cpp-static Boost::boost)
-set_target_properties(yaml-cpp-static PROPERTIES
-    COMPILE_FLAGS "${yaml_c_flags} ${yaml_cxx_flags}"
+add_library(yaml-cpp ${library_sources})
+set_target_properties(yaml-cpp PROPERTIES
+  COMPILE_FLAGS "${yaml_c_flags} ${yaml_cxx_flags}"
 )
 
-set_target_properties(yaml-cpp-static PROPERTIES
+set_target_properties(yaml-cpp PROPERTIES
 	VERSION "${YAML_CPP_VERSION}"
 	SOVERSION "${YAML_CPP_VERSION_MAJOR}.${YAML_CPP_VERSION_MINOR}"
-	PROJECT_LABEL "yaml-cpp ${LIB_RT_SUFFIX}"
+	PROJECT_LABEL "yaml-cpp ${LABEL_SUFFIX}"
 )
-
-if (BUILD_SHARED_LIBS)
-    list(APPEND target_to_export yaml-cpp)
-    add_library(yaml-cpp SHARED ${library_sources})
-    target_link_libraries(yaml-cpp Boost::boost)
-    target_compile_definitions(yaml-cpp PUBLIC ${SHARED_DEFINITIONS})
-    set_target_properties(yaml-cpp PROPERTIES
-        COMPILE_FLAGS "${yaml_c_flags} ${yaml_cxx_flags} ${SHARED_FLAGS}"
-    )
-
-    set_target_properties(yaml-cpp PROPERTIES
-	VERSION "${YAML_CPP_VERSION}"
-	SOVERSION "${YAML_CPP_VERSION_MAJOR}.${YAML_CPP_VERSION_MINOR}"
-	PROJECT_LABEL "yaml-cpp shared ${LIB_RT_SUFFIX}"
-    )
-
-
-endif()
-
 
 if(IPHONE)
 	set_target_properties(yaml-cpp PROPERTIES
 		XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "3.0"
 	)
-
-	set_target_properties(yaml-cpp-static PROPERTIES
-		XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "3.0"
-	)
 endif()
 
 if(MSVC)
-    # correct library names
-    set_target_properties(yaml-cpp-static PROPERTIES
-	DEBUG_POSTFIX "${LIB_TARGET_SUFFIX}d"
-	RELEASE_POSTFIX "${LIB_TARGET_SUFFIX}"
-	MINSIZEREL_POSTFIX "${LIB_TARGET_SUFFIX}"
-	RELWITHDEBINFO_POSTFIX "${LIB_TARGET_SUFFIX}"
-    )
+	if(NOT BUILD_SHARED_LIBS)
+		# correct library names
+		set_target_properties(yaml-cpp PROPERTIES
+			DEBUG_POSTFIX "${LIB_TARGET_SUFFIX}d"
+			RELEASE_POSTFIX "${LIB_TARGET_SUFFIX}"
+			MINSIZEREL_POSTFIX "${LIB_TARGET_SUFFIX}"
+			RELWITHDEBINFO_POSTFIX "${LIB_TARGET_SUFFIX}"
+		)
+	endif()
 endif()
 
-set(VERSION ${YAML_CPP_VERSION})
-
-set(include_install_dir "include")
-set(lib_install_dir "lib")
-set(config_install_dir "lib/cmake/${PROJECT_NAME}")
-set(config_export_name "${PROJECT_NAME}Config")
-set(targets_export_name "${PROJECT_NAME}Targets")
-set(project_config "${CMAKE_CURRENT_BINARY_DIR}/${config_export_name}.cmake")
-set(version_config "${CMAKE_CURRENT_BINARY_DIR}/${config_export_name}Version.cmake")
-set(namespace "${PROJECT_NAME}::")
-
-include(CMakePackageConfigHelpers)
-configure_package_config_file( # Uses target_exports_name
-    "yaml-cpp-config.cmake.in"
-    "${project_config}"
-    INSTALL_DESTINATION "${config_install_dir}"
+install(TARGETS yaml-cpp ${_INSTALL_DESTINATIONS})
+install(
+	DIRECTORY ${header_directory}
+	DESTINATION ${INCLUDE_INSTALL_DIR}
+	FILES_MATCHING PATTERN "*.h"
 )
-write_basic_package_version_file(
-  "${version_config}"
-  VERSION ${VERSION}
-  COMPATIBILITY SameMajorVersion)
 
-install(
-  TARGETS ${target_to_export}
-  EXPORT "${targets_export_name}"
-  INCLUDES DESTINATION "${include_install_dir}"
-  LIBRARY DESTINATION ${lib_install_dir}
-  ARCHIVE DESTINATION ${lib_install_dir}
-  PUBLIC_HEADER DESTINATION ${include_install_dir}
-  )
+export(
+    TARGETS yaml-cpp
+    FILE "${PROJECT_BINARY_DIR}/yaml-cpp-targets.cmake")
+export(PACKAGE yaml-cpp)
+set(EXPORT_TARGETS yaml-cpp CACHE INTERNAL "export targets")
 
-install(
-  EXPORT "${targets_export_name}"
-  NAMESPACE "${namespace}"
-  DESTINATION "${config_install_dir}")
-install(
-  FILES "${project_config}" "${version_config}"
-  DESTINATION "${config_install_dir}")
+set(CONFIG_INCLUDE_DIRS "${YAML_CPP_SOURCE_DIR}/include")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/yaml-cpp-config.cmake.in
+	"${PROJECT_BINARY_DIR}/yaml-cpp-config.cmake" @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/yaml-cpp-config-version.cmake.in
+	"${PROJECT_BINARY_DIR}/yaml-cpp-config-version.cmake" @ONLY)
 
-install(
-    DIRECTORY include/yaml-cpp
-    DESTINATION include)
+install(FILES
+        "${PROJECT_BINARY_DIR}/yaml-cpp-targets.cmake"
+        "${PROJECT_BINARY_DIR}/yaml-cpp-config.cmake"
+        "${PROJECT_BINARY_DIR}/yaml-cpp-config-version.cmake"        
+        DESTINATION "lib/cmake/${PROJECT_NAME}")
+        
+if(UNIX)
+	set(PC_FILE ${CMAKE_BINARY_DIR}/yaml-cpp.pc)
+	configure_file("yaml-cpp.pc.cmake" ${PC_FILE} @ONLY)
+	install(FILES ${PC_FILE} DESTINATION ${LIB_INSTALL_DIR}/pkgconfig)
+endif()
+
+
+###
+### Extras
+###
+if(YAML_CPP_BUILD_TOOLS)
+	add_subdirectory(test)
+	add_subdirectory(util)
+endif()
+
+### Formatting
+get_property(all_sources GLOBAL PROPERTY SRCS_LIST)
+add_custom_target(format
+	COMMAND clang-format --style=file -i ${all_sources}
+	COMMENT "Running clang-format"
+	VERBATIM)
