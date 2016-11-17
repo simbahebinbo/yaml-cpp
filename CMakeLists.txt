@@ -26,9 +26,6 @@ project(YAML_CPP)
 ###
 include(CheckCXXCompilerFlag)
 hunter_add_package(Boost)
-find_package(Boost CONFIG REQUIRED)
-
-
 
 set(YAML_CPP_VERSION_MAJOR "0")
 set(YAML_CPP_VERSION_MINOR "5")
@@ -122,7 +119,7 @@ endif()
 include_directories(${YAML_CPP_SOURCE_DIR}/src)
 include_directories(${YAML_CPP_SOURCE_DIR}/include)
 
-find_package(Boost REQUIRED)
+find_package(Boost CONFIG REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 
