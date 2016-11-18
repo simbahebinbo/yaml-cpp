@@ -120,7 +120,6 @@ include_directories(${YAML_CPP_SOURCE_DIR}/src)
 include_directories(${YAML_CPP_SOURCE_DIR}/include)
 
 find_package(Boost CONFIG REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
 
 
 ###
@@ -278,7 +277,8 @@ set(_INSTALL_DESTINATIONS
 add_library(yaml-cpp ${library_sources})
 set_target_properties(yaml-cpp PROPERTIES
   COMPILE_FLAGS "${yaml_c_flags} ${yaml_cxx_flags}"
-)
+  )
+target_link_libraries(yaml-cpp Boost::boost)
 
 set_target_properties(yaml-cpp PROPERTIES
 	VERSION "${YAML_CPP_VERSION}"
