@@ -278,7 +278,7 @@ add_library(yaml-cpp ${library_sources})
 set_target_properties(yaml-cpp PROPERTIES
   COMPILE_FLAGS "${yaml_c_flags} ${yaml_cxx_flags}"
   )
-target_link_libraries(yaml-cpp Boost::boost)
+target_link_libraries(yaml-cpp PUBLIC Boost::boost)
 
 set_target_properties(yaml-cpp PROPERTIES
 	VERSION "${YAML_CPP_VERSION}"
@@ -304,8 +304,6 @@ if(MSVC)
 	endif()
 endif()
 
-set(VERSION ${YAML_CPP_VERSION})
-
 set(include_install_dir "include")
 set(lib_install_dir "lib")
 set(config_install_dir "lib/cmake/${PROJECT_NAME}")
@@ -323,7 +321,7 @@ configure_package_config_file( # Uses target_exports_name
     )
 write_basic_package_version_file(
       "${version_config}"
-      VERSION ${VERSION}
+      VERSION ${YAML_CPP_VERSION}
       COMPATIBILITY SameMajorVersion)
 
 install(
