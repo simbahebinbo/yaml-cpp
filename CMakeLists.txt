@@ -19,7 +19,7 @@ HunterGate(
     SHA1 "c5b159b48a3a842697f08fe2a72464adfd78a55d"
     )
 
-project(YAML_CPP)
+project(yaml-cpp)
 
 ###
 ### Project settings
@@ -27,10 +27,10 @@ project(YAML_CPP)
 include(CheckCXXCompilerFlag)
 hunter_add_package(Boost)
 
-set(YAML_CPP_VERSION_MAJOR "0")
-set(YAML_CPP_VERSION_MINOR "5")
-set(YAML_CPP_VERSION_PATCH "3")
-set(YAML_CPP_VERSION "${YAML_CPP_VERSION_MAJOR}.${YAML_CPP_VERSION_MINOR}.${YAML_CPP_VERSION_PATCH}")
+set(yaml-cpp_VERSION_MAJOR "0")
+set(yaml-cpp_VERSION_MINOR "5")
+set(yaml-cpp_VERSION_PATCH "3")
+set(yaml-cpp_VERSION "${yaml-cpp_VERSION_MAJOR}.${yaml-cpp_VERSION_MINOR}.${yaml-cpp_VERSION_PATCH}")
 
 enable_testing()
 
@@ -116,8 +116,8 @@ if(VERBOSE)
 	message(STATUS "contrib_private_headers: ${contrib_private_headers}")
 endif()
 
-include_directories(${YAML_CPP_SOURCE_DIR}/src)
-include_directories(${YAML_CPP_SOURCE_DIR}/include)
+include_directories(${yaml-cpp_SOURCE_DIR}/src)
+include_directories(${yaml-cpp_SOURCE_DIR}/include)
 
 find_package(Boost CONFIG REQUIRED)
 
@@ -281,8 +281,8 @@ set_target_properties(yaml-cpp PROPERTIES
 target_link_libraries(yaml-cpp PUBLIC Boost::boost)
 
 set_target_properties(yaml-cpp PROPERTIES
-	VERSION "${YAML_CPP_VERSION}"
-	SOVERSION "${YAML_CPP_VERSION_MAJOR}.${YAML_CPP_VERSION_MINOR}"
+	VERSION "${yaml-cpp_VERSION}"
+	SOVERSION "${yaml-cpp_VERSION_MAJOR}.${yaml-cpp_VERSION_MINOR}"
 	PROJECT_LABEL "yaml-cpp ${LABEL_SUFFIX}"
 )
 
@@ -321,7 +321,7 @@ configure_package_config_file( # Uses target_exports_name
     )
 write_basic_package_version_file(
       "${version_config}"
-      VERSION ${YAML_CPP_VERSION}
+      VERSION ${yaml-cpp_VERSION}
       COMPATIBILITY SameMajorVersion)
 
 install(
