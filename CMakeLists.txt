@@ -324,7 +324,8 @@ write_basic_package_version_file(
 
 install(TARGETS yaml-cpp 
     EXPORT "${targets_export_name}"
-    INCLUDES DESTINATION "${include_install_dir}"
+	INCLUDES DESTINATION "${include_install_dir}"
+	RUNTIME DESTINATION ${LIB_INSTALL_DIR}
     LIBRARY DESTINATION ${lib_install_dir}
     ARCHIVE DESTINATION ${lib_install_dir}
     PUBLIC_HEADER DESTINATION ${include_install_dir}
